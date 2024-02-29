@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import React, { useEffect, useRef, useState } from 'react'
-import {getProfileReportsAction} from "../../Components/store/actions/homeAction"
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { getProfileReportsAction } from "../../Components/store/actions/homeAction"
 import { connect } from "react-redux";
 import SuccessPopUp from '../SuccessPopUp';
 // import axios from 'axios';
@@ -8,22 +8,30 @@ import useWindow from '../Commons/hasWindow';
 
 function AccountComponent({ profilefeatureData, getProfileReportsAction }) {
   const hasWindow = useWindow();
-const [showSucsses, setshowSucsses] = useState(false)
-const [disabled, setdisabled] = useState(true)
+  const [showSucsses, setshowSucsses] = useState(false)
+  const [formValues, setFormValues] = useState(null)
+  const [disabled, setdisabled] = useState(true)
+  // console.log('data', data); 
+
+   
   useEffect(() => {
-		const fetchData = async () => {
-			await getProfileReportsAction();
-		};
-    if(hasWindow){
+    const data = profilefeatureData?.response
+    setFormValues(data)
+  }, [profilefeatureData]);
+  useEffect(() => {
+    const fetchData = async () => {
+      await getProfileReportsAction();
+    };
+    if (hasWindow) {
       fetchData();
     }
-	}, [getProfileReportsAction]);
+  }, [getProfileReportsAction]);
 
-  console.log('profilefeatureData',profilefeatureData);
-  console.log('env',process.env.NEXT_APP_HOST_API_URL);
-  const [formValues, setFormValues] = useState({...profilefeatureData.response})
+  console.log('formValues', formValues);
+  console.log('profilefeatureData', profilefeatureData);
+  console.log('env', process.env.NEXT_APP_HOST_API_URL);
 
-  console.log('profilefeatureData?.headers', profilefeatureData?.headers);
+  // console.log('profilefeatureData?.headers', profilefeatureData?.headers);
 
   const handleInputChange = (fieldName, value) => {
     setdisabled(false)
@@ -35,50 +43,50 @@ const [disabled, setdisabled] = useState(true)
       lastName: formValues.lastName,
       email: formValues.email,
       username: formValues.username,
-      organization: formValues.organization,
+      organization: formValues.organizationName,
       category: formValues.category,
       description: formValues.description,
-      profilePictureUrl:formValues.profilePictureUrl
+      profilePictureUrl: formValues.profilePictureUrl
     };
 
     fetch(`https://gatewaysvc-dev.azurewebsites.net/api/users/${formValues.id}`, {
-    method: 'PUT', 
-    headers: profilefeatureData.headers ,
-    body: JSON.stringify(updatedUser),
+      method: 'PUT',
+      headers: profilefeatureData.headers,
+      body: JSON.stringify(updatedUser),
     })
-    .then((response) => response.json() )
-    .then((updatedUserData) => {
-      setshowSucsses(true)
-      alert("Profile Successfully Updated !")
-      console.log('User information updated successfully:', updatedUserData);
-    // Optionally update the state or perform any other actions
+      .then((response) => response.json())
+      .then((updatedUserData) => {
+        setshowSucsses(true)
+        alert("Profile Successfully Updated !")
+        console.log('User information updated successfully:', updatedUserData);
+        // Optionally update the state or perform any other actions
       })
       .catch((error) => console.error('Error updating user data:', error));
   };
 
 
   const profile_upload = (formData) => {
-   
+
     // const updatedUser = {
     //   profilePictureUrl:formValues.profilePictureUrl
     // };
 
     fetch(`https://gatewaysvc-dev.azurewebsites.net/api/users/${formValues.id}`, {
-      method: 'PUT', 
-      headers: profilefeatureData?.headers ,
+      method: 'PUT',
+      headers: profilefeatureData?.headers,
       body: formData,
     })
-    .then((response) => response.json())
-    .then((updatedUserData) => {
-      console.log('User profile updated successfully:', updatedUserData);
-      // Optionally update the state or perform any other actions
-    })
-    .catch((error) => console.error('Error updating user data:', error));
+      .then((response) => response.json())
+      .then((updatedUserData) => {
+        console.log('User profile updated successfully:', updatedUserData);
+        // Optionally update the state or perform any other actions
+      })
+      .catch((error) => console.error('Error updating user data:', error));
   };
   const [previewImage, setPreviewImage] = useState(null);
 
   const fileref = useRef(null);
-  console.log('profilefeatureData?.headers',profilefeatureData?.headers);
+  // console.log('profilefeatureData?.headers',profilefeatureData?.headers);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -89,7 +97,7 @@ const [disabled, setdisabled] = useState(true)
         // Upload the file when selected
         const formData = new FormData();
         formData.append('file', file);
-        console.log('formData',formData);
+        console.log('formData', formData);
         // uploadPostProfile(formData);
         profile_upload(formData)
       };
@@ -113,28 +121,28 @@ const [disabled, setdisabled] = useState(true)
             Account details
           </div>
           <div className="self-stretch flex flex-col items-start justify-start gap-[20px_0px]">
-          <div className="w-24 relative h-24">
-          <input type="file" ref={fileref} hidden onChange={handleFileChange} />
+            <div className="w-24 relative h-24">
+              <input type="file" ref={fileref} hidden onChange={handleFileChange} />
 
-          {previewImage || profilefeatureData?.response?.profilePictureUrl ? (
-  <img
-  
-    className="absolute top-0 left-0 rounded-full w-24 h-24"
-    src={previewImage || profilefeatureData?.response?.profilePictureUrl}
-    alt="profile_logo"
-  />
-) : (
-  <img
-    onClick={() => fileref.current.click()} // Assuming `fileref` is a ref to an input element
-    className="absolute top-0 left-0 rounded-full w-24 h-24"
-    src={previewImage || '/edit02.svg'}
-    alt="profile_logo"
-  />
-)}
+              {previewImage || profilefeatureData?.response?.profilePictureUrl ? (
+                <img
 
-          </div>
+                  className="absolute top-0 left-0 rounded-full w-24 h-24"
+                  src={previewImage || profilefeatureData?.response?.profilePictureUrl}
+                  alt="profile_logo"
+                />
+              ) : (
+                <img
+                  onClick={() => fileref.current.click()} // Assuming `fileref` is a ref to an input element
+                  className="absolute top-0 left-0 rounded-full w-24 h-24"
+                  src={previewImage || '/edit02.svg'}
+                  alt="profile_logo"
+                />
+              )}
 
-         
+            </div>
+
+
             {/* <div className="w-24 relative h-24">
               <img
                 className="absolute top-[0px] left-[0px] rounded-radius-full w-24 h-24"
@@ -227,7 +235,7 @@ const [disabled, setdisabled] = useState(true)
                     <div className="relative leading-[20px] font-medium">
                       Last Name*
                     </div>
-                    <input placeholder="Enter Last name" value={formValues?.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className="self-stretch rounded-radius-md bg-colors-background-bg-primary shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] flex flex-row items-center justify-start py-2.5 px-3.5 gap-[0px_8px] text-base text-colors-text-text-primary-900 border-[1px] border-solid border-component-colors-components-buttons-secondary-button-secondary-border" />
+                    <input placeholder="Enter Last name"  value={formValues?.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className="self-stretch rounded-radius-md bg-colors-background-bg-primary shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] flex flex-row items-center justify-start py-2.5 px-3.5 gap-[0px_8px] text-base text-colors-text-text-primary-900 border-[1px] border-solid border-component-colors-components-buttons-secondary-button-secondary-border" />
                     {/* <div className="self-stretch rounded-radius-md bg-colors-background-bg-primary shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] flex flex-row items-center justify-start py-2.5 px-3.5 gap-[0px_8px] text-base text-colors-text-text-primary-900 border-[1px] border-solid border-component-colors-components-buttons-secondary-button-secondary-border">
                     <div className="flex-1 flex flex-row items-center justify-start">
                       <div className="flex-1 relative leading-[24px] overflow-hidden text-ellipsis whitespace-nowrap">
@@ -252,7 +260,7 @@ const [disabled, setdisabled] = useState(true)
                     <div className="relative leading-[20px] font-medium">
                       Email*
                     </div>
-                    <input placeholder="Enter email" value={formValues?.email} onChange={(e) => handleInputChange('email', e.target.value)} className="self-stretch rounded-radius-md bg-colors-background-bg-primary-hover shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] flex flex-row items-center justify-start py-2.5 px-3.5 gap-[0px_8px] text-base text-colors-text-text-quarterary-500 border-[1px] border-solid border-component-colors-components-buttons-secondary-button-secondary-border" />
+                    <input placeholder="Enter email" disabled value={formValues?.email} onChange={(e) => handleInputChange('email', e.target.value)} className="self-stretch rounded-radius-md bg-colors-background-bg-primary-hover shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] flex flex-row items-center justify-start py-2.5 px-3.5 gap-[0px_8px] text-base text-colors-text-text-quarterary-500 border-[1px] border-solid border-component-colors-components-buttons-secondary-button-secondary-border" />
                     {/* <div className="self-stretch rounded-radius-md bg-colors-background-bg-primary-hover shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] flex flex-row items-center justify-start py-2.5 px-3.5 gap-[0px_8px] text-base text-colors-text-text-quarterary-500 border-[1px] border-solid border-component-colors-components-buttons-secondary-button-secondary-border">
                     <div className="flex-1 flex flex-row items-center justify-start">
                       <div className="flex-1 relative leading-[24px] overflow-hidden text-ellipsis whitespace-nowrap">
@@ -373,7 +381,7 @@ const [disabled, setdisabled] = useState(true)
               </div>
             </div>
           </div>
-          <button disabled={disabled} className={`${disabled ? "text-bg-dark cursor-not-allowed " : "text-white cursor-pointer" } rounded-radius-md bg-component-colors-components-buttons-primary-button-primary-bg shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] overflow-hidden flex flex-row items-center justify-center py-2.5 px-3.5 gap-[0px_4px] border-[1px] border-solid border-component-colors-components-buttons-primary-button-primary-bg`}>
+          <button disabled={disabled} className={`${disabled ? "text-bg-dark cursor-not-allowed " : "text-white cursor-pointer"} rounded-radius-md bg-component-colors-components-buttons-primary-button-primary-bg shadow-[0px_1px_2px_rgba(16,_24,_40,_0.05)] overflow-hidden flex flex-row items-center justify-center py-2.5 px-3.5 gap-[0px_4px] border-[1px] border-solid border-component-colors-components-buttons-primary-button-primary-bg`}>
             <img
               className="w-5 relative h-5 overflow-hidden shrink-0 hidden"
               alt=""
@@ -627,8 +635,8 @@ const [disabled, setdisabled] = useState(true)
 // export default AccountComponent
 
 
-const mapStateToProps = (state) => ( console.log("state------",state),{
-	profilefeatureData: state.homeFeatureReducer.profilefeatureData,
+const mapStateToProps = (state) => (console.log("state------", state), {
+  profilefeatureData: state.homeFeatureReducer.profilefeatureData,
 
 });
 
